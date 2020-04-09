@@ -1,7 +1,7 @@
 import { window, workspace } from "vscode";
 import fs = require("fs");
 import path = require("path");
-import flatten = require("flat");
+const { flatten } = require("flat");
 
 let dotProp = require("dot-prop-immutable");
 
@@ -32,41 +32,55 @@ export abstract class GenerateTranslation {
 
         const translateObjectName = file.replace(`${pathToFind}/`, "");
 
-        if (dotProp.get(translateObject, textSelection)) {
-          window.showErrorMessage(
-            `${textSelection} already exists in the file ${translateObjectName}.`
+        const flatFormat = workspace
+          .getConfiguration("ng-translation-generator")
+          .get("flatFormat");
+
+        const keys = Object.keys(translateObject);
+        let valuesNotString = undefined;
+
+        if (keys.length > 0) {
+          valuesNotString = Object.keys(translateObject).find(
+            (key) => typeof translateObject[key] !== "string"
           );
-        } else {
+
+          if (valuesNotString && flatFormat) {
+            window.showErrorMessage(
+              `Invalid format. The key: "${valuesNotString}" not contains a string. \nThe file ${translateObjectName} not match with the flatFormat flag.`
+            );
+            return;
+          }
+        }
+
+        if (flatFormat) {
+          const partialMatch = keys.filter((el) => {
+            return el.startsWith(textSelection);
+          });
+          const fullMatch = keys.filter((el) => {
+            return el === textSelection;
+          });
+
+          if (fullMatch.length > 0) {
+            window.showErrorMessage(
+              `${textSelection} already exists in the file ${translateObjectName}.`
+            );
+            return;
+          } else if (partialMatch.length > 0) {
+            window.showErrorMessage(
+              `${textSelection} partial match in the file ${translateObjectName}.`
+            );
+            return;
+          }
+
           const value = await window.showInputBox({
             prompt: `What is value in ${translateObjectName} ?`,
             placeHolder: textSelection,
           });
 
           if (value) {
-            const arrTextSelection = textSelection.split(".");
-            arrTextSelection.pop();
-
-            const valueLastKey = dotProp.get(
-              translateObject,
-              arrTextSelection.join(".")
-            );
-            if (valueLastKey && typeof valueLastKey === "string") {
-              const newObject = {
-                [arrTextSelection[arrTextSelection.length - 1]]: valueLastKey,
-              };
-
-              translateObject = dotProp.set(
-                translateObject,
-                arrTextSelection.join("."),
-                newObject
-              );
-            }
-
-            translateObject = dotProp.set(
-              translateObject,
-              GenerateTranslation.normalizeKey(textSelection),
-              value
-            );
+            translateObject[
+              GenerateTranslation.normalizeKey(textSelection)
+            ] = value;
 
             await GenerateTranslation.updateFile(
               file,
@@ -79,6 +93,56 @@ export abstract class GenerateTranslation {
             );
 
             GenerateTranslation.replaceOnTranslate(textSelection);
+          }
+        } else {
+          if (dotProp.get(translateObject, textSelection)) {
+            window.showErrorMessage(
+              `${textSelection} already exists in the file ${translateObjectName}.`
+            );
+          } else {
+            const value = await window.showInputBox({
+              prompt: `What is value in ${translateObjectName} ?`,
+              placeHolder: textSelection,
+            });
+
+            if (value) {
+              const arrTextSelection = textSelection.split(".");
+              arrTextSelection.pop();
+
+              const valueLastKey = dotProp.get(
+                translateObject,
+                arrTextSelection.join(".")
+              );
+              if (valueLastKey && typeof valueLastKey === "string") {
+                const newObject = {
+                  [arrTextSelection[arrTextSelection.length - 1]]: valueLastKey,
+                };
+
+                translateObject = dotProp.set(
+                  translateObject,
+                  arrTextSelection.join("."),
+                  newObject
+                );
+              }
+
+              translateObject = dotProp.set(
+                translateObject,
+                GenerateTranslation.normalizeKey(textSelection),
+                value
+              );
+
+              await GenerateTranslation.updateFile(
+                file,
+                translateObject,
+                translateObjectName
+              );
+
+              window.showInformationMessage(
+                `${textSelection} added in the file ${translateObjectName}.`
+              );
+
+              GenerateTranslation.replaceOnTranslate(textSelection);
+            }
           }
         }
       }
