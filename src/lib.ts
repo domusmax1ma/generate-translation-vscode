@@ -1,7 +1,8 @@
 import { window, workspace } from "vscode";
 import fs = require("fs");
 import path = require("path");
-const { flatten } = require("flat");
+import * as flatten from "flat";
+import { pascalCase } from "change-case";
 
 let dotProp = require("dot-prop-immutable");
 
@@ -17,6 +18,13 @@ export abstract class GenerateTranslation {
       const path = workspace
         .getConfiguration("ng-translation-generator")
         .get("path");
+      const enablePascalCase = workspace
+        .getConfiguration("ng-translation-generator")
+        .get("convertCaseToPascal");
+
+      if (enablePascalCase) {
+        textSelection = pascalCase(textSelection, { delimiter: "." });
+      }
 
       let pathToFind = `${workspace.rootPath}${path}`;
       const translateFiles = GenerateTranslation.getFiles(
@@ -54,10 +62,12 @@ export abstract class GenerateTranslation {
 
         if (flatFormat) {
           const partialMatch = keys.filter((el) => {
-            return el.startsWith(textSelection);
+            return el
+              .toLocaleLowerCase()
+              .startsWith(textSelection.toLocaleLowerCase());
           });
           const fullMatch = keys.filter((el) => {
-            return el === textSelection;
+            return el.toLocaleLowerCase() === textSelection.toLocaleLowerCase();
           });
 
           if (fullMatch.length > 0) {

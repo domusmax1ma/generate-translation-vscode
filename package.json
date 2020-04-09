@@ -69,6 +69,11 @@
           "type": "boolean",
           "default": true,
           "description": "Generate json with flatten keys."
+        },
+        "ng-translation-generator.convertCaseToPascal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Force every new key into PascalCase format."
         }
       }
     },
@@ -101,6 +106,7 @@
   },
   "dependencies": {
     "@types/flat": "^5.0.0",
+    "change-case": "^4.1.1",
     "dot-prop-immutable": "^1.5.0",
     "flat": "^5.0.0",
     "fs": "0.0.1-security"
