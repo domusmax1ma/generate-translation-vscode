@@ -1,6 +1,7 @@
 import { window, workspace } from "vscode";
 import fs = require("fs");
 import path = require("path");
+import flatten = require("flat");
 
 let dotProp = require("dot-prop-immutable");
 
@@ -14,7 +15,7 @@ export abstract class GenerateTranslation {
   public static async fromSelectedText(textSelection: string) {
     try {
       const path = workspace
-        .getConfiguration("generate-translation")
+        .getConfiguration("ng-translation-generator")
         .get("path");
 
       let pathToFind = `${workspace.rootPath}${path}`;
@@ -38,7 +39,7 @@ export abstract class GenerateTranslation {
         } else {
           const value = await window.showInputBox({
             prompt: `What is value in ${translateObjectName} ?`,
-            placeHolder: textSelection
+            placeHolder: textSelection,
           });
 
           if (value) {
@@ -51,7 +52,7 @@ export abstract class GenerateTranslation {
             );
             if (valueLastKey && typeof valueLastKey === "string") {
               const newObject = {
-                [arrTextSelection[arrTextSelection.length - 1]]: valueLastKey
+                [arrTextSelection[arrTextSelection.length - 1]]: valueLastKey,
               };
 
               translateObject = dotProp.set(
@@ -90,12 +91,12 @@ export abstract class GenerateTranslation {
     const editor = window.activeTextEditor;
     const replaceForExtensions = <Array<string>>(
       workspace
-        .getConfiguration("generate-translation")
+        .getConfiguration("ng-translation-generator")
         .get("replaceForExtensions")
     );
     const templateSnippetToReplace = <string>(
       workspace
-        .getConfiguration("generate-translation")
+        .getConfiguration("ng-translation-generator")
         .get("templateSnippetToReplace")
     );
 
@@ -106,7 +107,7 @@ export abstract class GenerateTranslation {
       replaceForExtensions.indexOf(extname.replace(".", "")) > -1 &&
       templateSnippetToReplace
     ) {
-      editor.edit(editBuilder => {
+      editor.edit((editBuilder) => {
         editBuilder.replace(
           editor.selection,
           templateSnippetToReplace.replace("i18n", textSelection)
@@ -130,15 +131,25 @@ export abstract class GenerateTranslation {
       }
 
       const sort = workspace
-        .getConfiguration("generate-translation")
+        .getConfiguration("ng-translation-generator")
         .get("sort");
       if (sort) {
         translateObject = GenerateTranslation.sortObject(translateObject);
       }
 
+      const flatFormat = workspace
+        .getConfiguration("ng-translation-generator")
+        .get("flatFormat");
+
+      let jsonResult = translateObject;
+
+      if (flatFormat) {
+        jsonResult = flatten(translateObject);
+      }
+
       fs.writeFile(
         file,
-        JSON.stringify(translateObject, null, tabSizeEditor),
+        JSON.stringify(jsonResult, null, tabSizeEditor),
         (err: any) => {
           if (err) {
             throw err;
