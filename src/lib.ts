@@ -9,6 +9,57 @@ let dotProp = require("dot-prop-immutable");
 export abstract class GenerateTranslation {
   private static _editor = window.activeTextEditor;
 
+  public static async formatLanguagesFiles() {
+    try {
+      const path = workspace
+        .getConfiguration("ng-translation-generator")
+        .get("path");
+
+      let pathToFind = `${workspace.rootPath}${path}`;
+      const translateFiles = GenerateTranslation.getFiles(
+        pathToFind,
+        ".json",
+        null,
+        []
+      );
+
+      for (let i = 0; i < translateFiles.length; i++) {
+        const file = translateFiles[i];
+        let translateObject = JSON.parse(fs.readFileSync(file, "utf-8"));
+
+        const translateObjectName = file.replace(`${pathToFind}/`, "");
+
+        const flatFormat = workspace
+          .getConfiguration("ng-translation-generator")
+          .get("flatFormat");
+
+        if (flatFormat) {
+          await GenerateTranslation.updateFile(
+            file,
+            translateObject,
+            translateObjectName
+          );
+
+          window.showInformationMessage(
+            `File ${translateObjectName} formatted!`
+          );
+        } else {
+          await GenerateTranslation.updateFile(
+            file,
+            translateObject,
+            translateObjectName
+          );
+
+          window.showInformationMessage(
+            `File ${translateObjectName} formatted!`
+          );
+        }
+      }
+    } catch (error) {
+      window.showErrorMessage(error.message);
+    }
+  }
+
   public static generate(key: string) {
     GenerateTranslation.fromSelectedText(key);
   }
@@ -23,7 +74,12 @@ export abstract class GenerateTranslation {
         .get("convertCaseToPascal");
 
       if (enablePascalCase) {
-        textSelection = pascalCase(textSelection, { delimiter: "." });
+        textSelection = textSelection
+          .split(".")
+          .map((el) => {
+            return pascalCase(el);
+          })
+          .join(".");
       }
 
       let pathToFind = `${workspace.rootPath}${path}`;

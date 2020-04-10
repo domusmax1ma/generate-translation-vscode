@@ -35,7 +35,8 @@
   ],
   "activationEvents": [
     "onCommand:generateTranslation.generate",
-    "onCommand:generateTranslation.fromSelectedText"
+    "onCommand:generateTranslation.fromSelectedText",
+    "onCommand:generateTranslation.formatLanguagesFiles"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -80,11 +81,15 @@
     "commands": [
       {
         "command": "generateTranslation.fromSelectedText",
-        "title": "Generate Translation: From selected text"
+        "title": "Translation Generator: From selected text"
       },
       {
         "command": "generateTranslation.generate",
-        "title": "Generate Translation: Generate"
+        "title": "Translation Generator: Generate"
+      },
+      {
+        "command": "generateTranslation.formatLanguagesFiles",
+        "title": "Translation Generator: Format languages files"
       }
     ]
   },
