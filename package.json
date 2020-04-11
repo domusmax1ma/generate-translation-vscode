@@ -2,7 +2,7 @@
   "name": "ng-translation-generator",
   "displayName": "Translation Generator",
   "description": "A visual studio code extension for you to generate the translations without leaving the current file.",
-  "homepage": "https://github.com/domusmax1ma/ng-translation-generator-vscode",
+  "homepage": "https://github.com/domusmaxima/ng-translation-generator-vscode",
   "author": "Massimiliano Casadei <massimiliano.casadei86@gmail.com>",
   "icon": "assets/logo.png",
   "galleryBanner": {
@@ -10,14 +10,14 @@
     "theme": "dark"
   },
   "version": "0.1.0",
-  "publisher": "domusmax1ma",
+  "publisher": "domusmaxima",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/domusmax1ma/ng-translation-generator-vscode.git"
+    "url": "https://github.com/domusmaxima/ng-translation-generator-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/domusmax1ma/ng-translation-generator-vscode/issues"
+    "url": "https://github.com/domusmaxima/ng-translation-generator-vscode/issues"
   },
   "engines": {
     "vscode": "^1.0.0"
